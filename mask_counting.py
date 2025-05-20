@@ -4,23 +4,34 @@ from sort import sort
 from ultralytics import YOLO
 
 
-mask_tracker = sort.Sort(max_age=1,
+mask_tracker = sort.Sort(max_age=2,
                          min_hits = 1,
-                         iou_threshold= 1)
-non_tracker = sort.Sort(max_age=1,
+                         iou_threshold= 0.7)
+non_tracker = sort.Sort(max_age=2,
                         min_hits = 1,
-                        iou_threshold= 1) 
+                        iou_threshold= 0.7) 
 
 mask_set = set()
 non_set = set()
 
-print(f"mask count : {len(mask_set)}")
-
 model = YOLO('MASK_DETECTING\mask_checking4\weights\\best.pt')
 CLASS_NAMES = model.names  
 
-def draw_box(result,
-             frame:np.array):
+def draw_box(result:list,
+             frame:np.array) -> np.array:
+    """
+    Draw bounding boxes around detected faces on a video frame.
+    Masked faces are outlined in green, unmasked faces are outlined in red.
+
+    Args:
+        result (List[Dict[str, Any]]): A list of detection dicts, each containing:
+            - 'box' (Tuple[int, int, int, int]): Coordinates of the bounding box (x1, y1, x2, y2).
+            - 'mask' (bool) : True if the face is wearing a mask; False otherwise.
+        frame (np.ndarray): The current video frame in BGR format.
+
+    Returns:
+        np.ndarray: The same frame array with bounding boxes and labels drawn.
+    """
     
     if len(result) == 0:
         return
@@ -36,9 +47,9 @@ def draw_box(result,
         x1, y1, x2, y2 = map(int, (x1, y1, x2, y2))
 
         if cls_id == 0:
-            color = (0, 255, 0)
+            color = (0, 255, 0) # green
         else:
-            color = (0, 0, 255)
+            color = (0, 0, 255) # red
 
         thickness = 2
         cv2.rectangle(img, (x1, y1), (x2, y2), color, thickness)
@@ -69,7 +80,22 @@ def draw_box(result,
 
     return img
     
-def add_tracker(result):
+def add_tracker(result:list,
+                frame:np.array) -> np.array:
+    """
+    Overlay bounding-box counting information on a video frame.
+    using a SORT algorithm.
+
+    Args:
+        result (List[Dict[str, Any]]): A list of detection dicts, each containing:
+            - 'box' (Tuple[int, int, int, int]): Coordinates of the bounding box (x1, y1, x2, y2).
+            - 'mask' (bool) : True if the face is wearing a mask; False otherwise.
+        frame (np.ndarray): The current video frame in BGR format.
+
+    Returns:
+        np.ndarray: The same frame with tracking IDs and count annotations drawn on each bounding box.
+    """
+    
     global mask_set, non_set
     
     if len(result) == 0:
@@ -83,24 +109,35 @@ def add_tracker(result):
 
     tracks_mask = mask_tracker.update(mask_data)
     tracks_non = non_tracker.update(non_data)
-    print(tracks_mask)
 
     mask_ids = set(tracks_mask[:, 4].astype(int).tolist())
     non_ids = set(tracks_non[:, 4].astype(int).tolist())
-    print(mask_ids)
-    print(non_ids)
 
     mask_set |= mask_ids
     non_set |= non_ids
 
-    print(f"mask count : {len(mask_set)}")
-    print(f"no mask count : {len(non_set)}")
+    # --- 텍스트 출력 설정
+    font          = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale    = 2
+    thickness     = 2
+    line_type     = cv2.LINE_AA
+
+    text_mask = f"Mask count: {len(mask_set)}"
+    text_non  = f"NoMask count: {len(non_set)}"
+
+    cv2.putText(frame, text_mask, (10, 50), font, font_scale, (0,0,0), thickness, line_type)
+    cv2.putText(frame, text_non,  (10, 110), font, font_scale, (0,0,0), thickness, line_type)
+
+    return frame
+
             
 
 
 
 if __name__ == "__main__":
-    source = '[WION]NewCOVID.mp4'
+    
+    # you move the video project file and call 
+    source = '[Asian Boss] Wuhan Citizens On Coming Out of COVID-19 Lockdown [Street Interview]ASIAN BOSS.mp4'
 
     # Create a video capture object from the VideoCapture Class.
     video_cap = cv2.VideoCapture(source)
@@ -119,7 +156,7 @@ if __name__ == "__main__":
         
         frame_result = model(frame)
 
-        add_tracker(frame_result)
+        frame = add_tracker(frame_result, frame)
         boxed_frame = draw_box(frame_result,frame)
         cv2.imshow(win_name, boxed_frame)
 
