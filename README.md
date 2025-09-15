@@ -2,60 +2,54 @@
 
 #  Mask Detect and Counting
 
-YOLOv8 기반 마스크 착용 탐지 및 카운팅 시스템.
-실시간 CCTV 영상에서 마스크 착용 여부를 판별하고, 트래킹을 통해 총 인원 수와 마스크 착용 인원 수를 카운팅합니다.
+A real-time mask detection and counting system based on YOLOv8s that identifies mask-wearing status in live CCTV footage and counts the total number of people and mask-wearing individuals through object tracking.
 
----
 
-##  프로젝트 구조
+##  project structure
 
 ```
 Mask-detect-and-counting/
-├── weights/                  # 학습된 YOLO 모델 가중치
-├── utils/                    # 유틸 함수 및 시각화 도구
-├── mask_counting.py          # 메인 실행 파일
-├── main.py                   # Yolov8s 학습 프로젝트
-├── requirements.txt
+├── MASK_DETECTING/         # Training results and model files
+├── data/                   # Dataset and annotations
+│   ├── train/
+│   └── test/
+├── results/                # Output images/videos
+├── data.yaml              # Data path and class name configuration
+├── hyp_custom.yaml        # YOLOv8s training configuration
+├── main.ipynb             # YOLOv8s fine-tuning Jupyter notebook
+├── mask_counting.py       # Main detection & counting
 └── README.md
 ```
 
+
+## Main Functions
+- YOLOv8s training in Jupyter notebook
+- Detecting masks, assigning identity IDs, and tracking
+- Counting masked and non-masked people
+
+## Trainning Result
+<img width="2400" height="1200" alt="image" src="https://github.com/user-attachments/assets/779f37ef-a020-46ed-8b98-e9b919d08365" />
+
+| Metric | Value | Description |
+|--------|-------|-------------|
+| Precision | 88.89% | Accuracy of positive predictions |
+| Recall | 87.21% | Ability to find all positive instances |
+| mAP50 | 91.73% | Mean Average Precision at IoU 0.5 |
+| mAP50-95 | 59.71% | Mean Average Precision at IoU 0.5-0.95 |
+
+*Results are from the final epoch (epoch 100) with best model weights.*
+
+##  Model infomation
+
+* Model: YOLOv8s (Ultralytics)
+* Classes:
+  * `0`: Face with mask
+  * `1`: Face without mask
+* Training Data: OpenCV mask image dataset
+* Framework: [Ultralytics YOLO](https://github.com/ultralytics/ultralytics)
 ---
 
-##  주요 기능
-
-* ✅ YOLOv8을 통한 마스크 착용 여부 탐지
-* ✅ SORT 알고리즘을 활용한 객체 추적 및 ID 부여
-* ✅ 카테고리별 마스크 착용/미착용 인원 카운팅
-
----
-
-##  설치 방법
-
-```bash
-git clone https://github.com/BicMak/Mask-detect-and-counting.git
-cd Mask-detect-and-counting
-
-# 가상 환경 설정 권장
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-
-pip install -r requirements.txt
-
-```
-
-## 🧠 모델 정보
-
-* 사용 모델: YOLOv8 (Ultralytics)
-* 클래스:
-
-  * `0`: 마스크 착용
-  * `1`: 마스크 미착용
-* 학습 데이터: OPENCV mask image data
-* 프레임워크: [Ultralytics YOLO](https://github.com/ultralytics/ultralytics)
-
----
-
-## 📎 참고 라이브러리
+## 📎 Reference Libraries
 
 * [Ultralytics YOLO](https://github.com/ultralytics/ultralytics)
 * [abewley/sort](https://github.com/abewley/sort)
