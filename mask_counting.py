@@ -4,17 +4,17 @@ from sort import sort
 from ultralytics import YOLO
 
 
-mask_tracker = sort.Sort(max_age=2,
-                         min_hits = 1,
-                         iou_threshold= 0.7)
-non_tracker = sort.Sort(max_age=2,
-                        min_hits = 1,
-                        iou_threshold= 0.7) 
+mask_tracker = sort.Sort(max_age=10,
+                         min_hits = 15,
+                         iou_threshold= 0.6)
+non_tracker = sort.Sort(max_age=10,
+                        min_hits = 15,
+                        iou_threshold= 0.6) 
 
 mask_set = set()
 non_set = set()
 
-model = YOLO('MASK_DETECTING\mask_checking4\weights\\best.pt')
+model = YOLO('mask_checking4\weights\\best.pt')
 CLASS_NAMES = model.names  
 
 def draw_box(result:list,
@@ -118,15 +118,15 @@ def add_tracker(result:list,
 
     # --- 텍스트 출력 설정
     font          = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale    = 2
-    thickness     = 2
+    font_scale    = 1
+    thickness     = 1
     line_type     = cv2.LINE_AA
 
     text_mask = f"Mask count: {len(mask_set)}"
     text_non  = f"NoMask count: {len(non_set)}"
 
-    cv2.putText(frame, text_mask, (10, 50), font, font_scale, (0,0,0), thickness, line_type)
-    cv2.putText(frame, text_non,  (10, 110), font, font_scale, (0,0,0), thickness, line_type)
+    cv2.putText(frame, text_mask, (10, 30), font, font_scale, (255,0,0), thickness, line_type)
+    cv2.putText(frame, text_non,  (10, 60), font, font_scale, (255,0,0), thickness, line_type)
 
     return frame
 
@@ -136,15 +136,38 @@ def add_tracker(result:list,
 
 if __name__ == "__main__":
     
+    CONFIDENCE_THRESHOLD = 0.5  # 신뢰도 임계값 (0.0 ~ 1.0)
+    IOU_THRESHOLD = 0.8         # NMS IoU 임계값 (0.0 ~ 1.0)
+    MAX_DETECTIONS = 10        # 최대 감지 개수
+
+    SAVE_VIDEO = True           # 결과 영상 저장 여부
+    OUTPUT_PATH = 'result_mask_detection.mp4'  # 저장할 파일 경로
+    
+
     # you move the video project file and call 
-    source = '[Asian Boss] Wuhan Citizens On Coming Out of COVID-19 Lockdown [Street Interview]ASIAN BOSS.mp4'
+    source = 'videoplayback (1).mp4'
 
     # Create a video capture object from the VideoCapture Class.
     video_cap = cv2.VideoCapture(source)
 
+    fps = video_cap.get(cv2.CAP_PROP_FPS)
+    width = int(video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    print(f"Video Info - FPS: {fps}, Size: {width}x{height}")
+ 
+
+    video_writer = None
+    if SAVE_VIDEO:
+        # 코덱 설정: 'mp4v', 'XVID', 'MJPG' 등
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video_writer = cv2.VideoWriter(OUTPUT_PATH, fourcc, fps, (width, height))
+        print(f"결과 영상 저장: {OUTPUT_PATH}")
+
     # Create a named window for the video display.
     win_name = 'Masked people counting'
     cv2.namedWindow(win_name)
+
+
 
     # Enter a while loop to read and display the video frames one at a time.
     while True:
@@ -154,17 +177,23 @@ if __name__ == "__main__":
             break
         # Display the current frame in the named window.
         
-        frame_result = model(frame)
+        frame_result = model(frame, 
+                           conf=CONFIDENCE_THRESHOLD,    # 신뢰도 임계값
+                           iou=IOU_THRESHOLD,            # NMS IoU 임계값  
+                           max_det=MAX_DETECTIONS,       # 최대 감지 개수
+                           verbose=False)  
 
         frame = add_tracker(frame_result, frame)
         boxed_frame = draw_box(frame_result,frame)
         cv2.imshow(win_name, boxed_frame)
 
+        if SAVE_VIDEO and video_writer is not None:
+            video_writer.write(boxed_frame)
 
         # Use the waitKey() function to monitor the keyboard for user input.
         # key = cv2.waitKey(0) will display the window indefinitely until any key is pressed.
         # key = cv2.waitKey(1) will display the window for 1 ms
-        key = cv2.waitKey(0)
+        key = cv2.waitKey(1)
 
         # The return value of the waitKey() function indicates which key was pressed.
         # You can use this feature to check if the user selected the `q` key to quit the video stream.
@@ -173,5 +202,8 @@ if __name__ == "__main__":
             break
 
     video_cap.release()
+    if video_writer is not None:
+        video_writer.release()
+        print(f"결과 영상이 저장되었습니다: {OUTPUT_PATH}")
     cv2.destroyWindow(win_name)
 
