@@ -2,6 +2,9 @@
 
 #  Mask Detect and Counting
 
+![demo_video](https://github.com/user-attachments/assets/cab03f4a-ee9b-4aff-93ed-020c6d6afeec)
+https://www.youtube.com/watch?v=dz6mcj71wLc
+
 A real-time mask detection and counting system based on YOLOv8s that identifies mask-wearing status in live CCTV footage and counts the total number of people and mask-wearing individuals through object tracking.
 
 
