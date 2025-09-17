@@ -14,9 +14,6 @@ A real-time mask detection and counting system based on YOLOv8s that identifies 
 ```
 Mask-detect-and-counting/
 ├── MASK_DETECTING/         # Training results and model files
-├── data/                   # Dataset and annotations
-│   ├── train/
-│   └── test/
 ├── results/                # Output images/videos
 ├── data.yaml              # Data path and class name configuration
 ├── hyp_custom.yaml        # YOLOv8s training configuration
