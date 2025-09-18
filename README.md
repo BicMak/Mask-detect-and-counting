@@ -13,12 +13,12 @@ A real-time mask detection and counting system based on YOLOv8s that identifies 
 
 ```
 Mask-detect-and-counting/
-├── MASK_DETECTING/         # Training results and model files
-├── results/                # Output images/videos
+├── mask_checking/         # Training results and model files
 ├── data.yaml              # Data path and class name configuration
 ├── hyp_custom.yaml        # YOLOv8s training configuration
 ├── main.ipynb             # YOLOv8s fine-tuning Jupyter notebook
 ├── mask_counting.py       # Main detection & counting
+├── yolov8s.pt             # pretrained model
 └── README.md
 ```
 
@@ -28,7 +28,7 @@ Mask-detect-and-counting/
 - Detecting masks, assigning identity IDs, and tracking
 - Counting masked and non-masked people
 
-## Trainning Result
+## Training Result
 <img width="2400" height="1200" alt="image" src="https://github.com/user-attachments/assets/779f37ef-a020-46ed-8b98-e9b919d08365" />
 
 | Metric | Value | Description |
@@ -48,6 +48,11 @@ Mask-detect-and-counting/
   * `1`: Face without mask
 * Training Data: OpenCV mask image dataset
 * Framework: [Ultralytics YOLO](https://github.com/ultralytics/ultralytics)
+
+## Limitations
+- Object detection fails when object size is too small, resulting in inaccurate counting
+- Individual tracking is based on bounding box positions, making it unable to distinguish between people within the same bounding box
+
 ---
 
 ## 📎 Reference Libraries
